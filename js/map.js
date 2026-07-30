@@ -8,10 +8,40 @@ const DESTINATION_COLOR = '#ff5a5a';
 window.MapModule = (() => {
   let map = null;
   let currentMarker = null;
+  let currentHeadingEl = null;
   let originLabel = null;
   let destinationMarker = null;
   let destinationLabel = null;
   let routeLine = null;
+  let hasCenteredOnCurrent = false;
+  let originAddressResolved = false;
+  let lastHeading = null;
+
+  function computeBearing(lat1, lng1, lat2, lng2) {
+    const toRad = (deg) => (deg * Math.PI) / 180;
+    const toDeg = (rad) => (rad * 180) / Math.PI;
+    const dLng = toRad(lng2 - lng1);
+    const y = Math.sin(dLng) * Math.cos(toRad(lat2));
+    const x =
+      Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+      Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLng);
+    return (toDeg(Math.atan2(y, x)) + 360) % 360;
+  }
+
+  function updateHeadingRotation() {
+    if (!currentHeadingEl || !currentMarker) return;
+
+    let angle = lastHeading;
+    if ((angle === null || angle === undefined) && destinationMarker) {
+      const from = currentMarker.getPosition();
+      const to = destinationMarker.getPosition();
+      angle = computeBearing(from.getLat(), from.getLng(), to.getLat(), to.getLng());
+    }
+
+    if (typeof angle === 'number' && !Number.isNaN(angle)) {
+      currentHeadingEl.style.transform = `rotate(${angle}deg)`;
+    }
+  }
 
   function createLabelElement(text) {
     const div = document.createElement('div');
@@ -20,6 +50,16 @@ window.MapModule = (() => {
       'padding:4px 8px;background:#16191d;border:1px solid #2a2e34;border-radius:6px;' +
       'color:#eaecef;font-size:12px;white-space:nowrap;transform:translateY(-42px);';
     return div;
+  }
+
+  function createHeadingArrowElement() {
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = 'width:28px;height:28px;transition:transform 0.3s ease;transform:rotate(0deg);';
+    wrapper.innerHTML =
+      '<svg width="28" height="28" viewBox="0 0 24 24">' +
+      `<path d="M12 1.5 L19.5 21 L12 16.8 L4.5 21 Z" fill="${ORIGIN_COLOR}" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round" />` +
+      '</svg>';
+    return wrapper;
   }
 
   function createMarkerImage(color) {
@@ -82,7 +122,7 @@ window.MapModule = (() => {
     });
   }
 
-  function setCurrentLocationMarker(lat, lng) {
+  function setCurrentLocationMarker(lat, lng, heading) {
     if (!map) {
       console.error('[MapModule.setCurrentLocationMarker] map이 초기화되지 않았습니다. init() 먼저 호출하세요.');
       return;
@@ -93,12 +133,24 @@ window.MapModule = (() => {
     if (currentMarker) {
       currentMarker.setPosition(position);
     } else {
-      currentMarker = new kakao.maps.Marker({ position, map, image: createMarkerImage(ORIGIN_COLOR) });
+      currentHeadingEl = createHeadingArrowElement();
+      currentMarker = new kakao.maps.CustomOverlay({
+        position,
+        content: currentHeadingEl,
+        xAnchor: 0.5,
+        yAnchor: 0.5,
+        zIndex: 10,
+      });
+      currentMarker.setMap(map);
     }
+
+    if (typeof heading === 'number' && !Number.isNaN(heading)) {
+      lastHeading = heading;
+    }
+    updateHeadingRotation();
 
     if (originLabel) {
       originLabel.setPosition(position);
-      originLabel.setContent(createLabelElement('출발지'));
     } else {
       originLabel = new kakao.maps.CustomOverlay({
         position,
@@ -108,25 +160,31 @@ window.MapModule = (() => {
       originLabel.setMap(map);
     }
 
-    map.setCenter(position);
+    if (!hasCenteredOnCurrent) {
+      map.setCenter(position);
+      hasCenteredOnCurrent = true;
+    }
 
-    reverseGeocode(lat, lng, (address) => {
-      if (address && originLabel) {
-        originLabel.setContent(createLabelElement(address));
-      }
-    });
+    if (!originAddressResolved) {
+      reverseGeocode(lat, lng, (address) => {
+        if (address && originLabel) {
+          originLabel.setContent(createLabelElement(address));
+          originAddressResolved = true;
+        }
+      });
+    }
   }
 
   async function showRoute(destLat, destLng) {
     if (!map || !currentMarker) {
       console.error('[MapModule.showRoute] 출발지(현재 위치 마커)가 없습니다. setCurrentLocationMarker를 먼저 호출하세요.');
-      return;
+      return null;
     }
 
     const restKey = window.CONFIG && window.CONFIG.KAKAO_MOBILITY_REST_KEY;
     if (!restKey) {
       console.error('[MapModule.showRoute] CONFIG.KAKAO_MOBILITY_REST_KEY가 비어있습니다. config.js를 확인하세요.');
-      return;
+      return null;
     }
 
     const origin = currentMarker.getPosition();
@@ -164,8 +222,12 @@ window.MapModule = (() => {
       const bounds = new kakao.maps.LatLngBounds();
       linePath.forEach((point) => bounds.extend(point));
       map.setBounds(bounds, 35, 35, 35, 35);
+
+      const summary = data.routes[0].summary;
+      return { distance: summary.distance, duration: summary.duration };
     } catch (err) {
       console.error('[MapModule.showRoute] 경로 조회 실패', err);
+      return null;
     }
   }
 
@@ -199,6 +261,11 @@ window.MapModule = (() => {
       destinationLabel.setMap(null);
       destinationLabel = null;
     }
+
+    map.setCenter(position);
+    map.setLevel(3);
+
+    updateHeadingRotation();
   }
 
   function locateCurrent() {
@@ -207,14 +274,23 @@ window.MapModule = (() => {
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => setCurrentLocationMarker(pos.coords.latitude, pos.coords.longitude),
+    // watchPosition으로 실시간 추적: 이동 중 위치/진행방향(heading)이 갱신되면 마커도 계속 따라 움직임
+    navigator.geolocation.watchPosition(
+      (pos) => setCurrentLocationMarker(pos.coords.latitude, pos.coords.longitude, pos.coords.heading),
       (err) => {
         console.warn('[MapModule.locateCurrent] 위치 정보를 가져오지 못했습니다. 기본 위치로 대체합니다.', err.message);
         setCurrentLocationMarker(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng);
-      }
+      },
+      { enableHighAccuracy: true, maximumAge: 5000 }
     );
   }
 
-  return { init, setCurrentLocationMarker, showRoute, moveMarker, locateCurrent, DEFAULT_CENTER };
+  function clearRoute() {
+    if (routeLine) {
+      routeLine.setMap(null);
+      routeLine = null;
+    }
+  }
+
+  return { init, setCurrentLocationMarker, showRoute, moveMarker, locateCurrent, clearRoute, DEFAULT_CENTER };
 })();

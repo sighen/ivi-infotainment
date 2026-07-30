@@ -6,8 +6,28 @@
   const selectedBox = document.getElementById('selected-destination');
   const selectedName = selectedBox ? selectedBox.querySelector('.selected-name') : null;
   const selectedAddress = selectedBox ? selectedBox.querySelector('.selected-address') : null;
+  const routeInfo = document.getElementById('route-info');
+  const routeGuideBtn = document.getElementById('route-guide-btn');
+  const routeCancelBtn = document.getElementById('route-cancel-btn');
+  const clearBtn = document.getElementById('search-clear-btn');
+  const submitBtn = document.getElementById('search-submit-btn');
+  const backBtn = document.getElementById('destination-back-btn');
 
   if (!input || !list) return;
+
+  let selectedItem = null;
+  let lastRenderArgs = { historyMatches: [], placeItems: [] };
+
+  function setInputValue(value) {
+    input.value = value;
+    if (clearBtn) clearBtn.classList.toggle('hidden', !value);
+  }
+
+  function formatDuration(distanceMeters, durationSeconds) {
+    const km = (distanceMeters / 1000).toFixed(1);
+    const minutes = Math.round(durationSeconds / 60);
+    return `${km}km · 약 ${minutes}분`;
+  }
 
   function createClockIcon() {
     const span = document.createElement('span');
@@ -21,9 +41,33 @@
 
   function showSelectedDestination(item) {
     if (!selectedBox) return;
+    selectedItem = item;
     selectedName.textContent = item.name;
     selectedAddress.textContent = item.address || '';
+
+    window.MapModule.clearRoute();
+    if (routeInfo) {
+      routeInfo.textContent = '';
+      routeInfo.classList.add('hidden');
+    }
+    if (routeGuideBtn) routeGuideBtn.classList.remove('hidden');
+    if (routeCancelBtn) routeCancelBtn.classList.add('hidden');
+
     selectedBox.classList.remove('hidden');
+  }
+
+  function hideSelectedDestination() {
+    if (!selectedBox) return;
+    selectedItem = null;
+    selectedBox.classList.add('hidden');
+
+    window.MapModule.clearRoute();
+    if (routeInfo) {
+      routeInfo.textContent = '';
+      routeInfo.classList.add('hidden');
+    }
+    if (routeGuideBtn) routeGuideBtn.classList.remove('hidden');
+    if (routeCancelBtn) routeCancelBtn.classList.add('hidden');
   }
 
   const HISTORY_KEY = 'ivi_recent_searches';
@@ -58,6 +102,7 @@
   }
 
   function renderList(historyMatches, placeItems) {
+    lastRenderArgs = { historyMatches, placeItems };
     list.innerHTML = '';
 
     historyMatches.forEach((keyword) => {
@@ -69,7 +114,7 @@
       text.appendChild(createClockIcon());
       text.appendChild(document.createTextNode(keyword));
       text.addEventListener('click', () => {
-        input.value = keyword;
+        setInputValue(keyword);
         handleSearch(keyword);
       });
 
@@ -95,8 +140,7 @@
         li.textContent = item.name;
         li.addEventListener('click', () => {
           window.MapModule.moveMarker(item.lat, item.lng, item.name);
-          window.MapModule.showRoute(item.lat, item.lng);
-          input.value = item.name;
+          setInputValue(item.name);
           list.innerHTML = '';
           showSelectedDestination(item);
         });
@@ -117,6 +161,7 @@
     const trimmed = keyword.trim();
 
     if (!trimmed) {
+      hideSelectedDestination();
       renderList(getHistory(), []);
       return;
     }
@@ -149,9 +194,6 @@
 
   const handleSearch = window.Utils.debounce(runSearch, 300);
 
-  const clearBtn = document.getElementById('search-clear-btn');
-  const submitBtn = document.getElementById('search-submit-btn');
-
   input.addEventListener('input', (e) => {
     if (clearBtn) clearBtn.classList.toggle('hidden', !e.target.value);
     handleSearch(e.target.value);
@@ -170,8 +212,7 @@
 
   if (clearBtn) {
     clearBtn.addEventListener('click', () => {
-      input.value = '';
-      clearBtn.classList.add('hidden');
+      setInputValue('');
       input.focus();
       runSearch('');
     });
@@ -179,5 +220,44 @@
 
   if (submitBtn) {
     submitBtn.addEventListener('click', () => runSearch(input.value));
+  }
+
+  if (routeGuideBtn) {
+    routeGuideBtn.addEventListener('click', async () => {
+      if (!selectedItem) return;
+      routeGuideBtn.disabled = true;
+      const summary = await window.MapModule.showRoute(selectedItem.lat, selectedItem.lng);
+      routeGuideBtn.disabled = false;
+
+      if (!routeInfo) return;
+      if (summary) {
+        routeInfo.textContent = formatDuration(summary.distance, summary.duration);
+        routeInfo.classList.remove('hidden');
+        routeGuideBtn.classList.add('hidden');
+        if (routeCancelBtn) routeCancelBtn.classList.remove('hidden');
+      } else {
+        routeInfo.textContent = '경로를 찾을 수 없습니다.';
+        routeInfo.classList.remove('hidden');
+      }
+    });
+  }
+
+  if (routeCancelBtn) {
+    routeCancelBtn.addEventListener('click', () => {
+      window.MapModule.clearRoute();
+      if (routeInfo) {
+        routeInfo.textContent = '';
+        routeInfo.classList.add('hidden');
+      }
+      routeCancelBtn.classList.add('hidden');
+      if (routeGuideBtn) routeGuideBtn.classList.remove('hidden');
+    });
+  }
+
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      if (selectedBox) selectedBox.classList.add('hidden');
+      renderList(lastRenderArgs.historyMatches, lastRenderArgs.placeItems);
+    });
   }
 })();

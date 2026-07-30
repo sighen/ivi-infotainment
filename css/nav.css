@@ -96,6 +96,23 @@
   display: none;
 }
 
+#destination-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 10px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+#destination-back-btn:hover {
+  color: var(--color-text);
+}
+
 #selected-destination .selected-name {
   font-size: 15px;
   font-weight: 700;
@@ -106,6 +123,63 @@
   margin-top: 4px;
   font-size: 12px;
   color: var(--color-text-muted);
+}
+
+#route-info {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+#route-info.hidden {
+  display: none;
+}
+
+.route-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.route-actions.hidden {
+  display: none;
+}
+
+#route-guide-btn,
+#route-cancel-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#route-guide-btn {
+  background: var(--color-accent);
+  color: #ffffff;
+}
+
+#route-guide-btn:hover {
+  opacity: 0.9;
+}
+
+#route-guide-btn.hidden,
+#route-cancel-btn.hidden {
+  display: none;
+}
+
+#route-cancel-btn {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+}
+
+#route-cancel-btn:hover {
+  color: var(--color-text);
+  background: var(--color-surface-alt);
 }
 
 #search-result-list {
