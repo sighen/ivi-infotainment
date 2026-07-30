@@ -8,27 +8,52 @@
   <link rel="stylesheet" href="css/weather.css" />
 </head>
 <body>
-  <div id="app">
-    <header id="statusbar" class="app-header">
-      <span id="statusbar-time">--:--</span>
-      <span id="statusbar-weather">-- --°</span>
-    </header>
+  <div class="dashboard-bg">
+    <div class="tablet-frame">
+      <div class="tablet-screen">
+        <div id="app">
+          <header id="statusbar" class="app-header">
+            <span id="statusbar-time">--:--</span>
+            <span id="statusbar-weather">-- --°</span>
+          </header>
 
-    <main>
-      <div id="weather-card-list"></div>
-    </main>
+          <main>
+            <div id="weather-card-list"></div>
+          </main>
 
-    <footer>
-      <button id="home-btn" class="footer-btn" onclick="AppRouter.goTo('main')">
-        <span class="icon">🏠</span><span>Home</span>
-      </button>
-      <button id="nav-btn" class="footer-btn" onclick="AppRouter.goTo('nav')">
-        <span class="icon">🧭</span><span>내비게이션</span>
-      </button>
-      <button id="weather-btn" class="footer-btn menu-active" onclick="AppRouter.goTo('weather')">
-        <span class="icon">☀️</span><span>날씨</span>
-      </button>
-    </footer>
+          <footer>
+            <button id="home-btn" class="footer-btn" onclick="AppRouter.goTo('main')">
+              <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 11l9-8 9 8" />
+                <path d="M5 10v10h5v-6h4v6h5V10" />
+              </svg>
+              <span>Home</span>
+            </button>
+            <button id="nav-btn" class="footer-btn" onclick="AppRouter.goTo('nav')">
+              <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9" />
+                <polygon points="16 8 14 14 8 16 10 10 16 8" />
+              </svg>
+              <span>내비게이션</span>
+            </button>
+            <button id="weather-btn" class="footer-btn menu-active" onclick="AppRouter.goTo('weather')">
+              <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="4" />
+                <line x1="12" y1="2" x2="12" y2="4" />
+                <line x1="12" y1="20" x2="12" y2="22" />
+                <line x1="4.93" y1="4.93" x2="6.34" y2="6.34" />
+                <line x1="17.66" y1="17.66" x2="19.07" y2="19.07" />
+                <line x1="2" y1="12" x2="4" y2="12" />
+                <line x1="20" y1="12" x2="22" y2="12" />
+                <line x1="4.93" y1="19.07" x2="6.34" y2="17.66" />
+                <line x1="17.66" y1="6.34" x2="19.07" y2="4.93" />
+              </svg>
+              <span>날씨</span>
+            </button>
+          </footer>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
