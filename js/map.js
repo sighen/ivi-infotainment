@@ -2,8 +2,9 @@
 // TODO: Kakao Map SDK, Kakao Mobility 길찾기 연동 (진행 예정 - map-nav 담당)
 
 const DEFAULT_CENTER = { lat: 37.5665, lng: 126.9780 }; // 서울시청 (fallback)
-const ORIGIN_COLOR = '#3ea6ff';
 const DESTINATION_COLOR = '#ff5a5a';
+const CAR_MARKER_SRC = 'assets/images/red-car.svg';
+const CAR_MARKER_ROTATION_OFFSET = -90; // red-car.svg는 회전 0도일 때 앞부분(노즈)이 오른쪽(동쪽)을 향함
 
 window.MapModule = (() => {
   let map = null;
@@ -39,7 +40,7 @@ window.MapModule = (() => {
     }
 
     if (typeof angle === 'number' && !Number.isNaN(angle)) {
-      currentHeadingEl.style.transform = `rotate(${angle}deg)`;
+      currentHeadingEl.style.transform = `rotate(${angle + CAR_MARKER_ROTATION_OFFSET}deg)`;
     }
   }
 
@@ -54,11 +55,14 @@ window.MapModule = (() => {
 
   function createHeadingArrowElement() {
     const wrapper = document.createElement('div');
-    wrapper.style.cssText = 'width:28px;height:28px;transition:transform 0.3s ease;transform:rotate(0deg);';
-    wrapper.innerHTML =
-      '<svg width="28" height="28" viewBox="0 0 24 24">' +
-      `<path d="M12 1.5 L19.5 21 L12 16.8 L4.5 21 Z" fill="${ORIGIN_COLOR}" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round" />` +
-      '</svg>';
+    wrapper.style.cssText = `width:36px;height:27px;transition:transform 0.3s ease;transform:rotate(${CAR_MARKER_ROTATION_OFFSET}deg);`;
+
+    const img = document.createElement('img');
+    img.src = CAR_MARKER_SRC;
+    img.alt = '';
+    img.style.cssText = 'display:block;width:100%;height:100%;object-fit:contain;';
+
+    wrapper.appendChild(img);
     return wrapper;
   }
 
