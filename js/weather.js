@@ -14,6 +14,8 @@ window.WeatherModule = (() => {
   ];
 
   let timezoneOffset = 0;
+  let currentIndex = 0;
+  let moveTimer = null;
   async function getForecastData() {
     
     const apiKey = window.CONFIG?.OPENWEATHER_API_KEY;
@@ -49,19 +51,30 @@ window.WeatherModule = (() => {
   }
 
 function getForecastDate(item) {
-  if (item.dt) return new Date(item.dt * 1000);
-   return new Date((item.dt + 9 * 60 * 60) * 1000);
+  if (item.dt) return new Date((item.dt + timezoneOffset) * 1000);
+  return new Date(item.dt_txt);
 }
 
 
 function formatDateText(date) {
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const week = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
+  const month = date.getUTCMonth() + 1;
+  const day = date.getUTCDate();
+  const week = ['일', '월', '화', '수', '목', '금', '토'][date.getUTCDay()];
   return `${month}월 ${day}일 ${week}요일`;
 }
 
-function createWeatherCard(item) {
+function findCurrentForecastIndex(list) {
+  const now = Math.floor(Date.now() / 1000);
+  let index = 0;
+
+  list.forEach((item, i) => {
+    if (item.dt && item.dt <= now) index = i;
+  });
+
+  return index;
+}
+
+function createWeatherCard(item, isCurrent = false) {
   const date = getForecastDate(item);
   const dateText = formatDateText(date);
   const timeText = `${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}`;
@@ -70,9 +83,12 @@ function createWeatherCard(item) {
   const temp = Math.round(item.main.temp);
   const humidity = item.main.humidity;
   const wind = item.wind.speed;
+  const currentClass = isCurrent ? ' is-current' : '';
+  
+  
 
   return `
-    <article class="weather-card">
+    <article class="weather-card${currentClass}">
       <p class="weather-date">${dateText}</p>
       <p class="weather-time">${timeText}</p>
       <img class="weather-icon" src="${iconUrl}" alt="${desc}" />
@@ -84,27 +100,70 @@ function createWeatherCard(item) {
   `;
 }
 
+function renderWindow(container) {
+  const indexes = [-2, -1, 0, 1, 2].map((offset) => currentIndex + offset);
+
+  container.classList.add('is-sliding');
+
+  container.innerHTML = indexes
+    .map((forecastIndex) => {
+      if (forecastIndex < 0 || forecastIndex >= forecastList.length) {
+        return '<div class="weather-card-placeholder"></div>';
+      }
+
+      return createWeatherCard(forecastList[forecastIndex], forecastIndex === currentIndex);
+    })
+    .join('');
+
+  setTimeout(() => {
+    container.classList.remove('is-sliding');
+  }, 180);
+}
+
+
   
   // function getSummary() {
   //   // TODO: 실제 현재 날씨로 교체
   //   return { temp: '--°', icon: '⛅' };
   // }
 
-  async function renderForecastCards(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    console.log(`[WeatherModule.renderForecastCards] render on #${containerId}`);
-    // TODO: 5개 이상 시간대별 예보 카드 렌더 (가로/세로 스크롤, 카드 스타일 다양화)
-    const list = await getForecastData();
-  const forecastList = list.filter((item) => {
-  const date = getForecastDate(item);
-  const hour = date.getHours();
-  return hour >= 9 || date.getDate() !== getForecastDate(list[0]).getDate();
-});
+async function renderForecastCards(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
 
-container.innerHTML = forecastList.slice(0, 8).map(createWeatherCard).join('');
-  
-  }
+  forecastList = await getForecastData();
+  currentIndex = 0;
+  renderWindow(container);
+
+  if (container.dataset.weatherBound) return;
+  container.dataset.weatherBound = 'true';
+
+  container.addEventListener('mousemove', (event) => {
+    const rect = container.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+
+    if (moveTimer) return;
+
+    if (x > rect.width * 0.7 && currentIndex < forecastList.length - 1) {
+      moveTimer = setTimeout(() => {
+        currentIndex += 1;
+        renderWindow(container);
+        moveTimer = null;
+      }, 350);
+    }
+
+    if (x < rect.width * 0.3 && currentIndex > 0) {
+      moveTimer = setTimeout(() => {
+        currentIndex -= 1;
+        renderWindow(container);
+        moveTimer = null;
+      }, 350);
+    }
+  });
+}
+
+
+
 
   return { getSummary, renderForecastCards };
 })();
