@@ -15,11 +15,15 @@
     </header>
 
     <main class="nav-layout">
-      <div id="search-panel">
+      <div id="search-input-row">
         <input id="search-input" type="text" placeholder="장소, 주소 검색" autocomplete="off" />
-        <ul id="search-result-list"></ul>
       </div>
-      <div id="map-container"></div>
+      <div class="nav-body">
+        <div id="search-panel">
+          <ul id="search-result-list"></ul>
+        </div>
+        <div id="map-container"></div>
+      </div>
     </main>
 
     <footer>
@@ -43,8 +47,9 @@
   <script src="js/search.js"></script>
   <script src="js/main.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      window.MapModule.init('map-container');
+    document.addEventListener('DOMContentLoaded', async () => {
+      await window.MapModule.init('map-container');
+      window.MapModule.locateCurrent();
     });
   </script>
 </body>
