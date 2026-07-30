@@ -1,0 +1,113 @@
+/* ===== 다크테마 공통 변수 ===== */
+:root {
+  --color-bg: #0b0d10;
+  --color-surface: #16191d;
+  --color-surface-alt: #1e2227;
+  --color-border: #2a2e34;
+  --color-text: #eaecef;
+  --color-text-muted: #9aa0a8;
+  --color-accent: #3ea6ff;
+  --color-active: #ffffff;
+
+  --statusbar-height: 44px;
+  --footer-height: 72px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  overflow: hidden;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+/* ===== 상단 상태바 (index.html 전용) ===== */
+#statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--statusbar-height);
+  padding: 0 20px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+#statusbar-time {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+#statusbar-weather {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+/* ===== 공통 헤더 (nav.html / weather.html) ===== */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--statusbar-height);
+  padding: 0 20px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+/* ===== 메인 컨텐츠 영역 ===== */
+main {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+/* ===== 하단 푸터 (공통, 3화면 동일) ===== */
+footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: var(--footer-height);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.footer-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 8px 16px;
+}
+
+.footer-btn .icon {
+  font-size: 22px;
+}
+
+.footer-btn.menu-active {
+  color: var(--color-active);
+}

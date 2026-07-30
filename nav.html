@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IVI - Navigation</title>
+  <link rel="stylesheet" href="css/common.css" />
+  <link rel="stylesheet" href="css/nav.css" />
+</head>
+<body>
+  <div id="app">
+    <header id="statusbar" class="app-header">
+      <span id="statusbar-time">--:--</span>
+      <span id="statusbar-weather">-- --°</span>
+    </header>
+
+    <main class="nav-layout">
+      <div id="search-panel">
+        <input id="search-input" type="text" placeholder="장소, 주소 검색" autocomplete="off" />
+        <ul id="search-result-list"></ul>
+      </div>
+      <div id="map-container"></div>
+    </main>
+
+    <footer>
+      <button id="home-btn" class="footer-btn" onclick="AppRouter.goTo('main')">
+        <span class="icon">🏠</span><span>Home</span>
+      </button>
+      <button id="nav-btn" class="footer-btn menu-active" onclick="AppRouter.goTo('nav')">
+        <span class="icon">🧭</span><span>내비게이션</span>
+      </button>
+      <button id="weather-btn" class="footer-btn" onclick="AppRouter.goTo('weather')">
+        <span class="icon">☀️</span><span>날씨</span>
+      </button>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="config.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/weather.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/search.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      window.MapModule.init('map-container');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+/* 날씨 화면(weather.html) 전용 스타일 */
+
+#weather-card-list {
+  display: flex;
+  gap: 16px;
+  height: 100%;
+  padding: 20px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.weather-card {
+  flex: 0 0 160px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.weather-card .card-time {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.weather-card .card-icon {
+  font-size: 32px;
+}
+
+.weather-card .card-temp {
+  font-size: 20px;
+  font-weight: 700;
+}

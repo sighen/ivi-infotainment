@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IVI - Weather</title>
+  <link rel="stylesheet" href="css/common.css" />
+  <link rel="stylesheet" href="css/weather.css" />
+</head>
+<body>
+  <div id="app">
+    <header id="statusbar" class="app-header">
+      <span id="statusbar-time">--:--</span>
+      <span id="statusbar-weather">-- --°</span>
+    </header>
+
+    <main>
+      <div id="weather-card-list"></div>
+    </main>
+
+    <footer>
+      <button id="home-btn" class="footer-btn" onclick="AppRouter.goTo('main')">
+        <span class="icon">🏠</span><span>Home</span>
+      </button>
+      <button id="nav-btn" class="footer-btn" onclick="AppRouter.goTo('nav')">
+        <span class="icon">🧭</span><span>내비게이션</span>
+      </button>
+      <button id="weather-btn" class="footer-btn menu-active" onclick="AppRouter.goTo('weather')">
+        <span class="icon">☀️</span><span>날씨</span>
+      </button>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="config.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/weather.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      window.WeatherModule.renderForecastCards('weather-card-list');
+    });
+  </script>
+</body>
+</html>

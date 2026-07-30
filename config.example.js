@@ -1,0 +1,6 @@
+// config.js로 복사한 뒤 실제 키를 채워 넣으세요. config.js는 .gitignore 처리되어 커밋되지 않습니다.
+window.CONFIG = {
+  KAKAO_MAP_APP_KEY: 'YOUR_KAKAO_MAP_JAVASCRIPT_KEY',
+  KAKAO_MOBILITY_REST_KEY: 'YOUR_KAKAO_MOBILITY_REST_API_KEY',
+  OPENWEATHER_API_KEY: 'YOUR_OPENWEATHERMAP_API_KEY',
+};
