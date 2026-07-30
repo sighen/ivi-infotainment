@@ -40,8 +40,19 @@
             <div class="nav-body">
               <div id="search-panel">
                 <div id="selected-destination" class="hidden">
+                  <button id="destination-back-btn" type="button" aria-label="목록으로 돌아가기">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                    <span>목록으로</span>
+                  </button>
                   <div class="selected-name"></div>
                   <div class="selected-address"></div>
+                  <div id="route-info" class="hidden"></div>
+                  <div class="route-actions">
+                    <button id="route-guide-btn" type="button">경로 안내</button>
+                    <button id="route-cancel-btn" type="button" class="hidden">취소</button>
+                  </div>
                 </div>
                 <ul id="search-result-list"></ul>
               </div>
