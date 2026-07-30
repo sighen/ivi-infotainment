@@ -19,11 +19,16 @@ function updateStatusbarTime() {
   el.textContent = `${hh}:${mm}`;
 }
 
-function updateStatusbarWeather() {
+async function updateStatusbarWeather() {
   const el = document.getElementById('statusbar-weather');
-  if (!el || !window.WeatherModule) return;
-  const { temp, icon } = window.WeatherModule.getSummary();
-  el.textContent = `${icon} ${temp}`;
+  if (!el || !window.WeatherModule?.getSummary) return;
+  try {
+      const { temp, icon } = await window.WeatherModule.getSummary();
+      el.textContent = `${icon} ${temp}°`;
+  } catch (error) {
+      console.error(error);
+      el.textContent = '-- --°';
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
