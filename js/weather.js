@@ -13,8 +13,11 @@ window.WeatherModule = (() => {
   { dt_txt: '2026-07-30 21:00:00', main: { temp: 23, humidity: 62 }, wind: {speed:2.1}, weather: [{ description: '맑음', icon: '01d' }] },
   ];
 
+  let timezoneOffset = 0;
   async function getForecastData() {
+    
     const apiKey = window.CONFIG?.OPENWEATHER_API_KEY;
+    console.log('apiKey same?', window.CONFIG?.OPENWEATHER_API_KEY);
     try{
       const res = await axios.get(API_URL, {
         params: {
@@ -26,10 +29,11 @@ window.WeatherModule = (() => {
         },
       });
 
-      console.log(res.data.list.slice(0, 5));
+      console.log('Weather API success:', res.data.list.slice(0, 5));
+       timezoneOffset = res.data.city.timezone;
       return res.data.list;
-    } catch(error){
-      console.warn("Weather API fallback to mock data", error);
+    } catch (error) {
+      console.warn('Weather API failed:', error.response?.status, error.response?.data || error.message);
       return mockForecastList;
     }
   }
@@ -44,18 +48,23 @@ window.WeatherModule = (() => {
     };
   }
 
-  function formatDateText(dtTxt) {
-  const date = new Date(dtTxt);
+function getForecastDate(item) {
+  if (item.dt) return new Date(item.dt * 1000);
+   return new Date((item.dt + 9 * 60 * 60) * 1000);
+}
+
+
+function formatDateText(date) {
   const month = date.getMonth() + 1;
   const day = date.getDate();
   const week = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
   return `${month}월 ${day}일 ${week}요일`;
 }
 
-
 function createWeatherCard(item) {
-  const dateText = formatDateText(item.dt_txt);
-  const timeText = item.dt_txt.slice(11, 16);
+  const date = getForecastDate(item);
+  const dateText = formatDateText(date);
+  const timeText = `${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}`;
   const desc = item.weather[0].description;
   const iconUrl = `https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`;
   const temp = Math.round(item.main.temp);
@@ -84,10 +93,16 @@ function createWeatherCard(item) {
   async function renderForecastCards(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
-    console.log(`[WeatherModule.renderForecastCards] mock render on #${containerId}`);
+    console.log(`[WeatherModule.renderForecastCards] render on #${containerId}`);
     // TODO: 5개 이상 시간대별 예보 카드 렌더 (가로/세로 스크롤, 카드 스타일 다양화)
     const list = await getForecastData();
-    container.innerHTML = list.slice(0, 5).map(createWeatherCard).join('');
+  const forecastList = list.filter((item) => {
+  const date = getForecastDate(item);
+  const hour = date.getHours();
+  return hour >= 9 || date.getDate() !== getForecastDate(list[0]).getDate();
+});
+
+container.innerHTML = forecastList.slice(0, 8).map(createWeatherCard).join('');
   
   }
 
