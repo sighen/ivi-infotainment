@@ -2,12 +2,54 @@
 // TODO: Kakao Map SDK, Kakao Mobility 길찾기 연동 (진행 예정 - map-nav 담당)
 
 const DEFAULT_CENTER = { lat: 37.5665, lng: 126.9780 }; // 서울시청 (fallback)
+const ORIGIN_COLOR = '#3ea6ff';
+const DESTINATION_COLOR = '#ff5a5a';
 
 window.MapModule = (() => {
   let map = null;
   let currentMarker = null;
+  let originLabel = null;
   let destinationMarker = null;
+  let destinationLabel = null;
   let routeLine = null;
+
+  function createLabelElement(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    div.style.cssText =
+      'padding:4px 8px;background:#16191d;border:1px solid #2a2e34;border-radius:6px;' +
+      'color:#eaecef;font-size:12px;white-space:nowrap;transform:translateY(-42px);';
+    return div;
+  }
+
+  function createMarkerImage(color) {
+    const svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">' +
+      `<path d="M16 0C7.163 0 0 7.163 0 16c0 11 16 24 16 24s16-13 16-24C32 7.163 24.837 0 16 0z" fill="${color}"/>` +
+      '<circle cx="16" cy="16" r="6" fill="#ffffff"/>' +
+      '</svg>';
+    const src = `data:image/svg+xml;base64,${btoa(svg)}`;
+    return new kakao.maps.MarkerImage(src, new kakao.maps.Size(32, 40), {
+      offset: new kakao.maps.Point(16, 40),
+    });
+  }
+
+  function reverseGeocode(lat, lng, callback) {
+    if (!kakao.maps.services) {
+      callback(null);
+      return;
+    }
+    new kakao.maps.services.Geocoder().coord2Address(lng, lat, (result, status) => {
+      if (status === kakao.maps.services.Status.OK && result[0]) {
+        const addr = result[0].road_address
+          ? result[0].road_address.address_name
+          : result[0].address.address_name;
+        callback(addr);
+      } else {
+        callback(null);
+      }
+    });
+  }
 
   function loadKakaoSdk(appKey) {
     return new Promise((resolve, reject) => {
@@ -51,10 +93,28 @@ window.MapModule = (() => {
     if (currentMarker) {
       currentMarker.setPosition(position);
     } else {
-      currentMarker = new kakao.maps.Marker({ position, map });
+      currentMarker = new kakao.maps.Marker({ position, map, image: createMarkerImage(ORIGIN_COLOR) });
+    }
+
+    if (originLabel) {
+      originLabel.setPosition(position);
+      originLabel.setContent(createLabelElement('출발지'));
+    } else {
+      originLabel = new kakao.maps.CustomOverlay({
+        position,
+        content: createLabelElement('출발지'),
+        yAnchor: 1,
+      });
+      originLabel.setMap(map);
     }
 
     map.setCenter(position);
+
+    reverseGeocode(lat, lng, (address) => {
+      if (address && originLabel) {
+        originLabel.setContent(createLabelElement(address));
+      }
+    });
   }
 
   async function showRoute(destLat, destLng) {
@@ -95,7 +155,7 @@ window.MapModule = (() => {
       routeLine = new kakao.maps.Polyline({
         path: linePath,
         strokeWeight: 5,
-        strokeColor: '#3ea6ff',
+        strokeColor: '#22c55e',
         strokeOpacity: 0.9,
         strokeStyle: 'solid',
       });
@@ -103,13 +163,13 @@ window.MapModule = (() => {
 
       const bounds = new kakao.maps.LatLngBounds();
       linePath.forEach((point) => bounds.extend(point));
-      map.setBounds(bounds);
+      map.setBounds(bounds, 35, 35, 35, 35);
     } catch (err) {
       console.error('[MapModule.showRoute] 경로 조회 실패', err);
     }
   }
 
-  function moveMarker(lat, lng) {
+  function moveMarker(lat, lng, label) {
     if (!map) {
       console.error('[MapModule.moveMarker] map이 초기화되지 않았습니다. init() 먼저 호출하세요.');
       return;
@@ -120,7 +180,24 @@ window.MapModule = (() => {
     if (destinationMarker) {
       destinationMarker.setPosition(position);
     } else {
-      destinationMarker = new kakao.maps.Marker({ position, map });
+      destinationMarker = new kakao.maps.Marker({ position, map, image: createMarkerImage(DESTINATION_COLOR) });
+    }
+
+    if (label) {
+      if (destinationLabel) {
+        destinationLabel.setPosition(position);
+        destinationLabel.setContent(createLabelElement(label));
+      } else {
+        destinationLabel = new kakao.maps.CustomOverlay({
+          position,
+          content: createLabelElement(label),
+          yAnchor: 1,
+        });
+        destinationLabel.setMap(map);
+      }
+    } else if (destinationLabel) {
+      destinationLabel.setMap(null);
+      destinationLabel = null;
     }
   }
 
