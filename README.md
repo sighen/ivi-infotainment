@@ -60,8 +60,7 @@ ivi-infotainment/
 │   ├── weather.js           # OpenWeatherMap 연동 + 카드 렌더/스크롤
 │   └── main.js                # 화면 전환 라우팅(AppRouter)
 ├── assets/images/           # 배경/마커 이미지 에셋
-├── config.js (gitignore) / config.example.js
-└── CLAUDE.md                # 프로젝트 요구사항 명세
+└── config.js (gitignore) / config.example.js
 ```
 
 ## 모듈 간 공통 인터페이스
@@ -93,5 +92,3 @@ window.AppRouter.goTo('main' | 'nav' | 'weather')
 - `feature/main-layout`, `feature/ui-polish`, `feature/weather-scroll` : 레이아웃/UX 개선 작업 브랜치
 
 각 feature 브랜치에서 작업 후 `main`으로 PR을 올려 리뷰 후 병합합니다.
-
-자세한 요구사항은 `CLAUDE.md` 참고.
