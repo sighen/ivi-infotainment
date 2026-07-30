@@ -1,7 +1,91 @@
 /* 메인 화면(index.html) 전용 스타일 */
 
+.home-content {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 12px;
+  padding: 12px;
+}
+
+/* ④ 프로필 영역 (왼쪽, 세로로 김) */
+.profile-panel {
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 28px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+}
+
+.profile-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+
+.profile-name {
+  margin: 0;
+  font-size: 18px;
+  color: var(--color-text);
+}
+
+.profile-sub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* ⑤ 지도 + ⑥ 앱 버튼 (오른쪽, 위/아래로 분할) */
+.right-content {
+  grid-column: 2;
+  min-width: 0;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 12px;
+}
+
+.map-panel {
+  min-height: 0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
 #map-container {
   width: 100%;
   height: 100%;
+  background: var(--color-surface-alt);
+}
+
+.app-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.app-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.app-btn:hover {
   background: var(--color-surface-alt);
 }
